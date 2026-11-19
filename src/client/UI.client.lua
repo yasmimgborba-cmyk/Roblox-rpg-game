@@ -181,6 +181,16 @@ for key, pass in pairs(Config.GamePasses) do
 	local btn = createRow(storeList, order, pass.Name, pass.Description, COLORS.Purple)
 	btn.Text = "R$ " .. pass.Price
 	passButtons[key] = btn
+	if pass.Id ~= 0 then
+		task.spawn(function()
+			local ok, info = pcall(function()
+				return MarketplaceService:GetProductInfoAsync(pass.Id, Enum.InfoType.GamePass)
+			end)
+			if ok and info and info.PriceInRobux and not player:GetAttribute("Pass_" .. key) then
+				btn.Text = "R$ " .. info.PriceInRobux
+			end
+		end)
+	end
 	btn.MouseButton1Click:Connect(function()
 		if player:GetAttribute("Pass_" .. key) then
 			return
@@ -197,6 +207,16 @@ for index, product in ipairs(Config.DevProducts) do
 	local btn, sub = createRow(storeList, 100 + index, product.Name, "", COLORS.Gold)
 	btn.Text = "R$ " .. product.Price
 	productSubtitles[index] = sub
+	if product.Id ~= 0 then
+		task.spawn(function()
+			local ok, info = pcall(function()
+				return MarketplaceService:GetProductInfoAsync(product.Id, Enum.InfoType.Product)
+			end)
+			if ok and info and info.PriceInRobux then
+				btn.Text = "R$ " .. info.PriceInRobux
+			end
+		end)
+	end
 	btn.MouseButton1Click:Connect(function()
 		if product.Id == 0 then
 			showToast("Configure o ID deste produto no Config.", COLORS.Red)

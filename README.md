@@ -59,6 +59,7 @@ Cada monstro tem visual próprio: slime de gelatina, goblin com orelhas e adaga,
 ### 2. Publicar e liberar o salvamento
 1. *File > Publish to Roblox*.
 2. *Game Settings > Security* → ative **Enable Studio Access to API Services** (senão o salvamento não funciona no Studio).
+3. No Studio o jogo salva num banco separado (`PlayerData_v1_Studio`), então seus testes não mexem no progresso dos jogadores de verdade.
 
 ### 3. Criar os itens pagos
 1. Acesse [create.roblox.com](https://create.roblox.com) → seu jogo → **Monetization**.

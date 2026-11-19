@@ -71,6 +71,8 @@ Config.Rebirth = {
 
 -- ===== MONETIZAÇÃO (Robux) =====
 -- Crie os itens no Creator Dashboard e cole os IDs aqui (0 = desativado)
+-- Price é só o valor mostrado antes de carregar: a loja busca o preço real no Roblox
+-- (o Roblox pode ajustar o preço por região)
 Config.GamePasses = {
 	DoubleCoins = { Id = 0, Name = "2x Moedas", Description = "Ganhe o dobro de moedas para sempre", Price = 99 },
 	DoubleDamage = { Id = 0, Name = "2x Dano", Description = "Cause o dobro de dano para sempre", Price = 99 },
@@ -85,7 +87,7 @@ Config.DevProducts = {
 	{ Id = 0, Name = "Tesouro do Rei", Coins = 40000, Price = 399 },
 }
 
-Config.PremiumCoinBonus = 1.1 -- +10% para jogadores Premium (aumenta o Premium Payouts)
+Config.PremiumCoinBonus = 1.1 -- +10% para assinantes Roblox Premium/Plus (aumenta os pagamentos por engajamento)
 
 function Config.GetRebirthPrice(rebirths)
 	return math.floor(Config.Rebirth.BasePrice * (Config.Rebirth.PriceMultiplier ^ rebirths))

@@ -395,6 +395,11 @@ local DEFAULT_THEME = { Ground = M.Grass, Color = Color3.fromRGB(110, 185, 75) }
 -- ===================== Partes do mapa =====================
 
 local function setupLighting()
+	-- Estilo "Soft" combina com visual de jogo (pcall caso a versão não tenha a propriedade)
+	pcall(function()
+		Lighting.LightingStyle = Enum.LightingStyle.Soft
+		Lighting.PrioritizeLightingQuality = true
+	end)
 	Lighting.ClockTime = 14.5
 	Lighting.Brightness = 2.5
 	Lighting.GlobalShadows = true

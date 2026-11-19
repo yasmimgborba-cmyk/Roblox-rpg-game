@@ -29,7 +29,7 @@ local function getCoinMultiplier(player)
 	return Config.GetCoinMultiplier(
 		profile.Rebirths,
 		MonetizationService.HasPass(player, "DoubleCoins"),
-		player.MembershipType == Enum.MembershipType.Premium
+		player.HasRobloxSubscription == true
 	)
 end
 
@@ -297,6 +297,16 @@ spawnEnemy = function(index)
 	click.MouseClick:Connect(function(player)
 		local now = os.clock()
 		if lastAttack[player] and now - lastAttack[player] < Config.AttackCooldown then
+			return
+		end
+		-- Confere a distância no servidor (não confia só no ClickDetector)
+		local character = player.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+		if not root or not humanoid or humanoid.Health <= 0 or not model.PrimaryPart then
+			return
+		end
+		if (model.PrimaryPart.Position - root.Position).Magnitude > Config.AttackRange + data.Size then
 			return
 		end
 		lastAttack[player] = now
