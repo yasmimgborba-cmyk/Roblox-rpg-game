@@ -356,36 +356,36 @@ local THEMES = {
 		Decorate = function(zone)
 			scatter(zone, 12, 3, function(p) lantern(p, Color3.fromRGB(170, 110, 255), 6) end)
 			scatter(zone, 18, 4, function(p) deadTree(p, rng:NextNumber(0.9, 1.3), Color3.fromRGB(60, 50, 50)) end)
-			scatter(zone, 55, 2.2, tombstone)
+			scatter(zone, 70, 2.2, tombstone)
 		end,
 	},
 	{ -- Cânion dos Ogros
 		Ground = M.Sandstone, Color = Color3.fromRGB(195, 140, 90),
 		Terrain = function(zone)
-			for _ = 1, 8 do
+			for _ = 1, 12 do
 				rockPillar(terrainSpot(zone, 10), rng:NextNumber(0.8, 1.3), M.Sandstone)
 			end
-			for _ = 1, 25 do
+			for _ = 1, 40 do
 				boulder(terrainSpot(zone, 8), rng:NextNumber(3, 7), M.Rock)
 			end
 		end,
 		Decorate = function(zone)
 			scatter(zone, 5, 6, campfire)
-			scatter(zone, 20, 2, function(p) deadTree(p, rng:NextNumber(0.35, 0.5), Color3.fromRGB(120, 90, 60)) end)
+			scatter(zone, 30, 2, function(p) deadTree(p, rng:NextNumber(0.35, 0.5), Color3.fromRGB(120, 90, 60)) end)
 		end,
 	},
 	{ -- Vulcão do Dragão
 		Ground = M.Basalt, Color = Color3.fromRGB(55, 48, 48),
 		Terrain = function(zone)
-			for _ = 1, 12 do
+			for _ = 1, 20 do
 				lavaPool(terrainSpot(zone, 12), rng:NextNumber(5, 10))
 			end
-			for _ = 1, 16 do
+			for _ = 1, 30 do
 				basaltSpike(terrainSpot(zone, 6), rng:NextNumber(0.8, 1.6))
 			end
 		end,
 		Decorate = function(zone)
-			scatter(zone, 10, 3, function(p) deadTree(p, rng:NextNumber(0.8, 1.1), Color3.fromRGB(30, 25, 25)) end)
+			scatter(zone, 18, 3, function(p) deadTree(p, rng:NextNumber(0.8, 1.1), Color3.fromRGB(30, 25, 25)) end)
 		end,
 	},
 }
@@ -465,7 +465,7 @@ local function buildTerrain()
 	-- Morros suaves
 	for zone = 1, LAST_ZONE do
 		local theme = THEMES[zone] or DEFAULT_THEME
-		for _ = 1, 14 do
+		for _ = 1, 22 do
 			local radius = rng:NextNumber(8, 16)
 			local point = terrainSpot(zone, radius)
 			terrain:FillBall(Vector3.new(point.X, -radius * 0.78, point.Z), radius, theme.Ground)
