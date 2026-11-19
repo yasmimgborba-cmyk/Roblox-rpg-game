@@ -20,9 +20,27 @@ src/server/Main.server.lua                → inicia tudo
 src/server/Services/DataService.lua       → salva o progresso
 src/server/Services/MonetizationService.lua → gamepasses e compras
 src/server/Services/CombatService.lua     → monstros e combate
-src/server/Services/MapBuilder.lua        → chão, spawn e placas das zonas
+src/server/Services/MapBuilder.lua        → gera o mapa inteiro (terreno, zonas, enfeites, luz)
 src/client/UI.client.lua                  → interface do jogador
+src/client/ZoneAmbience.client.lua        → clima e nome de cada zona
 ```
+
+## O mapa
+
+Tudo é gerado por código quando o servidor liga. Não precisa modelar nada.
+
+- **Vila Inicial:** praça com fonte, postes de luz e o ponto de nascimento.
+- **Campo dos Slimes:** grama, lagos, árvores, arbustos e flores.
+- **Floresta Goblin:** floresta fechada, pinheiros, cogumelos e fogueiras.
+- **Cemitério Sombrio:** lápides, árvores secas, lanternas roxas e névoa.
+- **Cânion dos Ogros:** pilares de arenito, pedras grandes e acampamentos.
+- **Vulcão do Dragão:** chão de basalto, poças de lava com fogo e espinhos de rocha.
+- Montanhas com neve em volta, caminho de pedra ligando tudo e um portão com o nome de cada zona.
+- Ao entrar numa zona, o nome aparece na tela e a névoa e as cores mudam.
+
+Cada monstro tem visual próprio: slime de gelatina, goblin com orelhas e adaga, esqueleto com olhos vermelhos, ogro com chifres e clava, dragão com asas, cauda e fogo.
+
+**Importante:** como o mapa é criado ao rodar o jogo, no Studio ele só aparece quando você aperta **Play**. Para mudar o visual, edite `MapBuilder.lua` (por exemplo, a quantidade de árvores em cada zona). Também dá pra adicionar modelos da Toolbox por cima.
 
 ## Passo a passo
 

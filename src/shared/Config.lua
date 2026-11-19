@@ -16,13 +16,45 @@ Config.Weapons = {
 }
 
 -- Monstros: os mais fortes ficam mais longe do centro (Distance = {min, max})
+-- Style = visual do monstro | Zone = nome da área onde ele vive
 Config.Enemies = {
-	{ Name = "Slime", MaxHealth = 5, Reward = 2, Size = 3, Count = 10, Distance = { 20, 60 }, Color = Color3.fromRGB(90, 210, 90) },
-	{ Name = "Goblin", MaxHealth = 40, Reward = 12, Size = 4, Count = 8, Distance = { 70, 120 }, Color = Color3.fromRGB(60, 140, 60) },
-	{ Name = "Esqueleto", MaxHealth = 250, Reward = 60, Size = 5, Count = 6, Distance = { 130, 180 }, Color = Color3.fromRGB(230, 230, 220) },
-	{ Name = "Ogro", MaxHealth = 1500, Reward = 300, Size = 7, Count = 5, Distance = { 190, 240 }, Color = Color3.fromRGB(150, 110, 70) },
-	{ Name = "Dragão", MaxHealth = 12000, Reward = 2000, Size = 10, Count = 3, Distance = { 250, 300 }, Color = Color3.fromRGB(200, 40, 40) },
+	{ Name = "Slime", Style = "slime", Zone = "Campo dos Slimes", MaxHealth = 5, Reward = 2, Size = 3, Count = 10, Distance = { 20, 60 }, Color = Color3.fromRGB(90, 210, 90) },
+	{ Name = "Goblin", Style = "goblin", Zone = "Floresta Goblin", MaxHealth = 40, Reward = 12, Size = 4, Count = 8, Distance = { 70, 120 }, Color = Color3.fromRGB(110, 160, 60) },
+	{ Name = "Esqueleto", Style = "skeleton", Zone = "Cemitério Sombrio", MaxHealth = 250, Reward = 60, Size = 5, Count = 6, Distance = { 130, 180 }, Color = Color3.fromRGB(235, 232, 220) },
+	{ Name = "Ogro", Style = "ogre", Zone = "Cânion dos Ogros", MaxHealth = 1500, Reward = 300, Size = 7, Count = 5, Distance = { 190, 240 }, Color = Color3.fromRGB(150, 120, 80) },
+	{ Name = "Dragão", Style = "dragon", Zone = "Vulcão do Dragão", MaxHealth = 12000, Reward = 2000, Size = 10, Count = 3, Distance = { 250, 300 }, Color = Color3.fromRGB(200, 40, 40) },
 }
+
+Config.PlazaRadius = 16
+Config.PlazaName = "Vila Inicial"
+
+-- Onde começa a zona de cada monstro (raio a partir do centro)
+function Config.GetZoneStart(index)
+	if index == 1 then
+		return Config.PlazaRadius
+	end
+	return Config.Enemies[index].Distance[1] - 5
+end
+
+-- Onde termina a zona de cada monstro
+function Config.GetZoneEnd(index)
+	local nextEnemy = Config.Enemies[index + 1]
+	if nextEnemy then
+		return nextEnemy.Distance[1] - 5
+	end
+	return Config.Enemies[index].Distance[2] + 20
+end
+
+-- Em qual zona está quem está a essa distância do centro (0 = vila)
+function Config.GetZoneAt(distance)
+	local zone = 0
+	for index in ipairs(Config.Enemies) do
+		if distance >= Config.GetZoneStart(index) then
+			zone = index
+		end
+	end
+	return zone
+end
 
 Config.RespawnTime = 5 -- segundos
 Config.AttackRange = 30 -- distância máxima para clicar no monstro

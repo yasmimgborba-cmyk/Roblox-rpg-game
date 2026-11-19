@@ -45,10 +45,150 @@ local function updateBillboard(model)
 	gui.Bar.Label.Text = Config.FormatNumber(health) .. " / " .. Config.FormatNumber(maxHealth)
 end
 
-local function randomPosition(range, height)
-	local angle = math.random() * math.pi * 2
-	local radius = range[1] + math.random() * (range[2] - range[1])
-	return Vector3.new(math.cos(angle) * radius, height, math.sin(angle) * radius)
+local terrainParams = RaycastParams.new()
+terrainParams.FilterType = Enum.RaycastFilterType.Include
+terrainParams.FilterDescendantsInstances = { workspace.Terrain }
+
+local overlapParams = OverlapParams.new()
+overlapParams.FilterType = Enum.RaycastFilterType.Include
+
+local BAD_GROUND = { [Enum.Material.Water] = true, [Enum.Material.CrackedLava] = true }
+
+-- Acha um lugar no chão da zona, longe de água, lava, árvores e outros monstros
+local function findSpawnPosition(data)
+	local fallback
+	for _ = 1, 20 do
+		local angle = math.random() * math.pi * 2
+		local radius = data.Distance[1] + math.random() * (data.Distance[2] - data.Distance[1])
+		local x, z = math.cos(angle) * radius, math.sin(angle) * radius
+		local result = workspace:Raycast(Vector3.new(x, 200, z), Vector3.new(0, -400, 0), terrainParams)
+		local ground = result and result.Position or Vector3.new(x, 0, z)
+		fallback = fallback or ground
+		if result and not BAD_GROUND[result.Material] then
+			local center = ground + Vector3.new(0, data.Size / 2, 0)
+			if #workspace:GetPartBoundsInRadius(center, data.Size * 0.7, overlapParams) == 0 then
+				return ground
+			end
+		end
+	end
+	return fallback
+end
+
+-- ===== Visual dos monstros =====
+local function addPart(model, cf, size, color, material, shape)
+	local p = Instance.new("Part")
+	if shape then
+		p.Shape = shape
+	end
+	p.Size = size
+	p.CFrame = cf
+	p.Color = color
+	p.Material = material or Enum.Material.SmoothPlastic
+	p.Anchored = true
+	p.CanCollide = false
+	p.TopSurface = Enum.SurfaceType.Smooth
+	p.BottomSurface = Enum.SurfaceType.Smooth
+	p.Parent = model
+	return p
+end
+
+local BALL = Enum.PartType.Ball
+local NEON = Enum.Material.Neon
+local BLACK = Color3.new(0, 0, 0)
+local BONE = Color3.fromRGB(240, 230, 200)
+
+local function pair(fn)
+	fn(-1)
+	fn(1)
+end
+
+local STYLES = {}
+
+STYLES.slime = function(model, cf, s, body, data)
+	body.Material = Enum.Material.Glass
+	body.Transparency = 0.2
+	body.Reflectance = 0.1
+	addPart(model, cf * CFrame.new(0, -0.05 * s, 0), Vector3.one * 0.55 * s, data.Color:Lerp(BLACK, 0.35), nil, BALL)
+	pair(function(side)
+		local eye = cf * CFrame.new(side * 0.18 * s, 0.12 * s, -0.42 * s)
+		addPart(model, eye, Vector3.one * 0.2 * s, BLACK, nil, BALL)
+		addPart(model, eye * CFrame.new(0.03 * s, 0.04 * s, -0.08 * s), Vector3.one * 0.07 * s, Color3.new(1, 1, 1), NEON, BALL)
+	end)
+end
+
+STYLES.goblin = function(model, cf, s, body, data)
+	pair(function(side)
+		addPart(model, cf * CFrame.new(side * 0.2 * s, 0.12 * s, -0.42 * s), Vector3.one * 0.16 * s, Color3.fromRGB(255, 220, 40), NEON, BALL)
+		addPart(model, cf * CFrame.new(side * 0.55 * s, 0.15 * s, 0) * CFrame.Angles(0, 0, side * 0.5), Vector3.new(0.45, 0.1, 0.22) * s, data.Color)
+	end)
+	addPart(model, cf * CFrame.new(0, 0, -0.5 * s), Vector3.one * 0.16 * s, data.Color:Lerp(BLACK, 0.25), nil, BALL)
+	addPart(model, cf * CFrame.new(0, -0.2 * s, -0.46 * s), Vector3.new(0.25, 0.04, 0.05) * s, BLACK)
+	addPart(model, cf * CFrame.new(0.55 * s, -0.2 * s, -0.25 * s), Vector3.new(0.1, 0.1, 0.7) * s, Color3.fromRGB(170, 170, 180), Enum.Material.Metal)
+end
+
+STYLES.skeleton = function(model, cf, s, body, data)
+	body.Material = Enum.Material.Marble
+	pair(function(side)
+		addPart(model, cf * CFrame.new(side * 0.18 * s, 0.08 * s, -0.4 * s), Vector3.one * 0.22 * s, BLACK, nil, BALL)
+		addPart(model, cf * CFrame.new(side * 0.18 * s, 0.08 * s, -0.49 * s), Vector3.one * 0.08 * s, Color3.fromRGB(255, 40, 40), NEON, BALL)
+	end)
+	addPart(model, cf * CFrame.new(0, -0.1 * s, -0.48 * s), Vector3.new(0.08, 0.1, 0.05) * s, BLACK)
+	addPart(model, cf * CFrame.new(0, -0.38 * s, -0.25 * s), Vector3.new(0.45, 0.14, 0.3) * s, data.Color:Lerp(BLACK, 0.1))
+	for i = -2, 2 do
+		addPart(model, cf * CFrame.new(i * 0.07 * s, -0.29 * s, -0.4 * s), Vector3.new(0.05, 0.06, 0.04) * s, Color3.new(1, 1, 1))
+	end
+	addPart(model, cf * CFrame.new(0.6 * s, 0, -0.1 * s), Vector3.new(0.1, 0.9, 0.18) * s, Color3.fromRGB(140, 90, 60), Enum.Material.CorrodedMetal)
+end
+
+STYLES.ogre = function(model, cf, s, body, data)
+	pair(function(side)
+		addPart(model, cf * CFrame.new(side * 0.17 * s, 0.17 * s, -0.46 * s), Vector3.one * 0.12 * s, Color3.fromRGB(255, 60, 30), NEON, BALL)
+		addPart(model, cf * CFrame.new(side * 0.12 * s, -0.2 * s, -0.47 * s) * CFrame.Angles(0, 0, -side * 0.15), Vector3.new(0.08, 0.22, 0.08) * s, BONE)
+		addPart(model, cf * CFrame.new(side * 0.25 * s, 0.5 * s, -0.05 * s) * CFrame.Angles(0, 0, -side * 0.35), Vector3.new(0.12, 0.35, 0.12) * s, BONE)
+	end)
+	addPart(model, cf * CFrame.new(0, 0.28 * s, -0.43 * s), Vector3.new(0.5, 0.08, 0.12) * s, data.Color:Lerp(BLACK, 0.5))
+	addPart(model, cf * CFrame.new(0.65 * s, 0, -0.1 * s) * CFrame.Angles(0, 0, math.pi / 2 - 0.3), Vector3.new(1.2, 0.22, 0.22) * s, Color3.fromRGB(100, 65, 40), Enum.Material.Wood, Enum.PartType.Cylinder)
+end
+
+STYLES.dragon = function(model, cf, s, body, data)
+	local dark = data.Color:Lerp(BLACK, 0.35)
+	local snout = addPart(model, cf * CFrame.new(0, -0.05 * s, -0.5 * s), Vector3.one * 0.45 * s, dark, nil, BALL)
+	local fire = Instance.new("Fire")
+	fire.Size = 4
+	fire.Heat = 4
+	fire.Parent = snout
+	pair(function(side)
+		addPart(model, cf * CFrame.new(side * 0.07 * s, 0, -0.72 * s), Vector3.one * 0.06 * s, BLACK, nil, BALL)
+		addPart(model, cf * CFrame.new(side * 0.2 * s, 0.18 * s, -0.42 * s), Vector3.one * 0.13 * s, Color3.fromRGB(255, 210, 0), NEON, BALL)
+		addPart(model, cf * CFrame.new(side * 0.2 * s, 0.52 * s, 0.05 * s) * CFrame.Angles(0.5, 0, -side * 0.25), Vector3.new(0.1, 0.4, 0.1) * s, BONE)
+		addPart(model, cf * CFrame.new(side * 0.75 * s, 0.3 * s, 0.15 * s) * CFrame.Angles(0, 0, side * 0.45), Vector3.new(0.9, 0.05, 0.55) * s, dark)
+		addPart(model, cf * CFrame.new(side * 1.15 * s, 0.6 * s, 0.25 * s) * CFrame.Angles(0, 0, side * 0.9), Vector3.new(0.5, 0.05, 0.4) * s, dark)
+	end)
+	for _, z in ipairs({ -0.1, 0.1, 0.3 }) do
+		local y = math.sqrt(0.25 - z * z) + 0.05
+		addPart(model, cf * CFrame.new(0, y * s, z * s), Vector3.new(0.06, 0.18, 0.12) * s, BONE)
+	end
+	local tail = { { -0.3, 0.55, 0.3 }, { -0.33, 0.75, 0.22 }, { -0.3, 0.92, 0.15 } }
+	for _, t in ipairs(tail) do
+		addPart(model, cf * CFrame.new(0, t[1] * s, t[2] * s), Vector3.one * t[3] * s, data.Color, nil, BALL)
+	end
+	local light = Instance.new("PointLight")
+	light.Color = Color3.fromRGB(255, 120, 40)
+	light.Range = 14
+	light.Parent = body
+end
+
+local function buildVisual(model, data, ground)
+	local s = data.Size
+	local center = ground + Vector3.new(0, s / 2, 0)
+	local cf = CFrame.lookAt(center, Vector3.new(0, center.Y, 0))
+	local body = addPart(model, cf, Vector3.one * s, data.Color, nil, BALL)
+	body.Name = "Body"
+	body.CanCollide = true
+	model.PrimaryPart = body
+	local style = STYLES[data.Style] or STYLES.slime
+	style(model, cf, s, body, data)
+	return body
 end
 
 local spawnEnemy
@@ -79,7 +219,7 @@ function CombatService.Damage(player, model)
 
 	local body = model:FindFirstChild("Body")
 	if body then
-		local original = body.Color
+		local original = Config.Enemies[model:GetAttribute("EnemyIndex")].Color
 		body.Color = Color3.new(1, 1, 1)
 		task.delay(0.08, function()
 			if body.Parent then
@@ -97,7 +237,7 @@ local function createBillboard(body, data)
 	local gui = Instance.new("BillboardGui")
 	gui.Name = "Info"
 	gui.Size = UDim2.fromOffset(160, 46)
-	gui.StudsOffset = Vector3.new(0, data.Size / 2 + 1.5, 0)
+	gui.StudsOffset = Vector3.new(0, data.Size * 0.75 + 1.5, 0)
 	gui.AlwaysOnTop = true
 	gui.MaxDistance = 120
 
@@ -141,32 +281,9 @@ end
 
 spawnEnemy = function(index)
 	local data = Config.Enemies[index]
-	local position = randomPosition(data.Distance, data.Size / 2)
-
 	local model = Instance.new("Model")
 	model.Name = data.Name
-
-	local body = Instance.new("Part")
-	body.Name = "Body"
-	body.Shape = Enum.PartType.Ball
-	body.Size = Vector3.new(data.Size, data.Size, data.Size)
-	body.Color = data.Color
-	body.Material = Enum.Material.SmoothPlastic
-	body.Anchored = true
-	body.Position = position
-	body.Parent = model
-	model.PrimaryPart = body
-
-	for _, side in ipairs({ -1, 1 }) do
-		local eye = Instance.new("Part")
-		eye.Shape = Enum.PartType.Ball
-		eye.Size = Vector3.new(1, 1, 1) * data.Size * 0.2
-		eye.Color = Color3.new(0, 0, 0)
-		eye.Anchored = true
-		eye.CanCollide = false
-		eye.Position = position + Vector3.new(side * data.Size * 0.2, data.Size * 0.15, -data.Size * 0.42)
-		eye.Parent = model
-	end
+	local body = buildVisual(model, data, findSpawnPosition(data))
 
 	model:SetAttribute("EnemyIndex", index)
 	model:SetAttribute("MaxHealth", data.MaxHealth)
@@ -222,6 +339,8 @@ function CombatService.Start(dataService, monetizationService)
 	enemiesFolder = Instance.new("Folder")
 	enemiesFolder.Name = "Enemies"
 	enemiesFolder.Parent = workspace
+	local mapFolder = workspace:FindFirstChild("Map")
+	overlapParams.FilterDescendantsInstances = mapFolder and { mapFolder, enemiesFolder } or { enemiesFolder }
 
 	for index, data in ipairs(Config.Enemies) do
 		for _ = 1, data.Count do
